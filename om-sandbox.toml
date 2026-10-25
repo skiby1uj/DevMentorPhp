@@ -1,6 +1,6 @@
 version = 3
 
-# Custom / Bring Your Own Project
 [[services]]
-name = "custom"
-start_command = ["python3", "-m", "http.server", "3000", "--bind", "0.0.0.0"]
+name = "symfony"
+prepare_command = ["sh", "-c", "composer install --no-interaction && php bin/console doctrine:migrations:migrate --no-interaction"]
+start_command = ["php", "-S", "0.0.0.0:3000", "-t", "public"]
