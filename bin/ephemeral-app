@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Starts a throwaway instance of the app (PostgreSQL via testcontainers + migrations + PHP built-in server)
+// so it can be exercised from outside, e.g. with agent-browser (see tests/e2e/smoke.sh).
+// Usage: bin/ephemeral-app [--port=8765]. Stops the server and the container on SIGINT/SIGTERM.
+
+use App\Tests\Support\TestDatabase;
+use Symfony\Component\Process\Process;
+
+$root = dirname(__DIR__);
+require $root.'/vendor/autoload.php';
+
+$port = 8765;
+foreach (\array_slice($argv, 1) as $argument) {
+    if (1 === preg_match('/^--port=(\d+)$/', $argument, $matches)) {
+        $port = (int) $matches[1];
+    }
+}
+
+if (\function_exists('pcntl_async_signals')) {
+    pcntl_async_signals(true);
+    foreach ([\SIGINT, \SIGTERM] as $signal) {
+        pcntl_signal($signal, static fn () => exit(0));
+    }
+}
+
+TestDatabase::migrate('prod');
+TestDatabase::console('prod', ['asset-map:compile']);
+register_shutdown_function(TestDatabase::stop(...));
+
+$server = new Process(
+    [\PHP_BINARY, '-S', '127.0.0.1:'.$port, '-t', 'public'],
+    $root,
+    ['DATABASE_URL' => TestDatabase::url(), 'APP_ENV' => 'prod', 'APP_DEBUG' => '0', 'APP_SECRET' => 'ephemeral-secret'],
+    null,
+    null,
+);
+$server->start();
+register_shutdown_function(static fn () => $server->stop(5));
+
+echo sprintf("Ephemeral app listening on http://127.0.0.1:%d\n", $port);
+
+while ($server->isRunning()) {
+    usleep(200_000);
+}
+
+fwrite(\STDERR, $server->getErrorOutput());
+exit(1);

@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Fails unless a PHPUnit Clover report shows 100% line and method coverage for every file in src/.
+// Usage: bin/check-coverage [path/to/clover.xml]
+
+$report = $argv[1] ?? dirname(__DIR__).'/var/coverage/clover.xml';
+if (!is_file($report)) {
+    fwrite(\STDERR, sprintf("Coverage report not found: %s\n", $report));
+    exit(2);
+}
+
+$xml = simplexml_load_file($report);
+if (false === $xml) {
+    fwrite(\STDERR, sprintf("Coverage report is not valid XML: %s\n", $report));
+    exit(2);
+}
+
+$files = $xml->xpath('//file');
+$failures = [];
+foreach (false === $files ? [] : $files as $file) {
+    $metrics = $file->metrics;
+    $statements = (int) $metrics['statements'];
+    $methods = (int) $metrics['methods'];
+    if ((int) $metrics['coveredstatements'] < $statements || (int) $metrics['coveredmethods'] < $methods) {
+        $failures[] = sprintf(
+            '%s: lines %d/%d, methods %d/%d',
+            $file['name'],
+            (int) $metrics['coveredstatements'],
+            $statements,
+            (int) $metrics['coveredmethods'],
+            $methods,
+        );
+    }
+}
+
+if ([] !== $failures) {
+    fwrite(\STDERR, "Unit-test coverage is below 100%:\n  ".implode("\n  ", $failures)."\n");
+    exit(1);
+}
+
+echo "Unit-test coverage: 100% of src/ (lines and methods).\n";

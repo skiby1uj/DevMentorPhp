@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Platform\UI;
+namespace App\Tests\Integration\Platform\UI;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Tests\Integration\DatabaseWebTestCase;
 
-final class HealthControllerTest extends WebTestCase
+final class HealthControllerTest extends DatabaseWebTestCase
 {
     public function testLivenessIsOk(): void
     {

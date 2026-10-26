@@ -39,6 +39,8 @@ Uzupełnia zasady powyżej (nie zastępuje ich); źródło: wskazówki Borisa Ch
 13. **Subagenci i równoległość:** do rozległych poszukiwań, niezależnych podzadań lub dodatkowej mocy obliczeniowej deleguj do subagentów, aby nie zaśmiecać głównego kontekstu. Równoległe, niezależne zadania prowadź w osobnych git worktree (nie w jednym drzewie roboczym); każdy równoległy przebieg ma własny log w `.ai/runs/`.
 14. **Powtarzalna praca → skill:** czynność wykonywaną wielokrotnie zamień na skill (`.claude/skills/`, `.agents/skills/`) i zaproponuj to użytkownikowi, zamiast powtarzać ją ręcznie.
 
+15. **100% pokrycia testami jednostkowymi (bezwzględna zasada):** każda nowa funkcja, klasa lub metoda w `src/` MUSI mieć testy jednostkowe (`tests/Unit/`, lustro struktury `src/`) dające **100% pokrycia linii i metod** nowego kodu; bez tego zmiana nie jest „gotowa”, a CI blokuje PR. Brak wyjątków i brak wykluczeń z pokrycia (`@codeCoverageIgnore`, zawężanie `<source>`); jeśli kod trudno przetestować, zmień jego projekt zamiast obniżać próg. Testy integracyjne (`tests/Integration/`, PostgreSQL z testcontainers) uzupełniają testy jednostkowe, ale ich nie zastępują. Weryfikacja: `composer test:coverage` (wymaga PCOV/Xdebug).
+
 ## Założenia techniczne – DevMentor
 
 Aplikacja **DevMentor** (platforma mentoringowa; koncepcja produktu: `mentorhub-koncept/docs/`). Poniższe założenia są wiążące; odstępstwo wymaga zapisu w specyfikacji (`.ai/specs/`) i zgody użytkownika.
@@ -66,7 +68,8 @@ Aplikacja **DevMentor** (platforma mentoringowa; koncepcja produktu: `mentorhub-
 - Zadania asynchroniczne (e-maile, przypomnienia, wypłaty) przez Symfony Messenger z transportem Doctrine.
 
 **Jakość i weryfikacja**
-- Bramka jakości: **`composer qa`** (validate, PHP-CS-Fixer `@PER-CS3x0`+`@Symfony`, PHPStan level max, Deptrac, PHPUnit) musi być zielone przed „gotowe”; `composer cs-fix` naprawia styl. Nie dodawaj `@phpstan-ignore` ani baseline.
-- Testy: PHPUnit (`bin/phpunit`); nowe zachowanie ma test, błąd ma test regresyjny. Testy integracyjne działają na osobnej bazie `_test` (konfiguracja `when@test`).
+- Bramka jakości: **`composer qa`** (validate, PHP-CS-Fixer `@PER-CS3x0`+`@Symfony`, PHPStan level max, Deptrac, testy jednostkowe) oraz **`composer test:coverage`** (100% pokrycia, zasada 15) i **`composer test:integration`** muszą być zielone przed „gotowe”; `composer cs-fix` naprawia styl. Nie dodawaj `@phpstan-ignore` ani baseline.
+- CI (`.github/workflows/ci.yml`, każdy PR): `build` (instalacja prod, warmup, assety, `docker build`), `lint`, `unit` (próg 100%), `integration` (testcontainers + smoke tymczasowej instancji przez `agent-browser`: `composer e2e`). Spec: `.ai/specs/implemented/2026-10-26-ci-pull-request-pipeline.md`.
+- Testy: PHPUnit; `tests/Unit` (bez I/O, kernela i bazy) i `tests/Integration` (kernel + PostgreSQL z testcontainers przez `App\Tests\Support\TestDatabase`; bez Dockera ustaw `INTEGRATION_DATABASE_URL`). Nowe zachowanie ma test, błąd ma test regresyjny. Testy integracyjne używają bazy `<nazwa>_test` (konfiguracja `when@test`).
 - Po zmianie mapowania/migracji uruchom `bin/console doctrine:schema:validate` i potwierdź, że migracja wykonuje się na czystej bazie.
 - Język: kod, nazwy klas i komentarze po angielsku; teksty interfejsu przez translator (`translations/`), domyślnie PL.

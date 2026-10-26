@@ -53,7 +53,7 @@ bin/console doctrine:migrations:migrate
 symfony serve                          # lub: php -S 127.0.0.1:8000 -t public
 ```
 
-Bramka jakości (jak w CI): `composer qa` (validate, style, PHPStan max, Deptrac, PHPUnit). Health-checki: `GET /health/live`, `GET /health/ready`.
+Bramka jakości: `composer qa` (validate, style, PHPStan max, Deptrac, testy jednostkowe), `composer test:coverage` (100% pokrycia `src/`, wymaga PCOV/Xdebug), `composer test:integration` (PostgreSQL z testcontainers – wymaga Dockera albo `INTEGRATION_DATABASE_URL`), `composer e2e` (smoke tymczasowej instancji przez `agent-browser`). CI uruchamia to dla każdego PR. Health-checki: `GET /health/live`, `GET /health/ready`.
 Specyfikacje: [`.ai/specs/`](.ai/specs/) – w tym [stack i standardy](.ai/specs/2026-10-25-devmentor-tech-stack-and-engineering-standards.md).
 
 ## Praca z agentami AI

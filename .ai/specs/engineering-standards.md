@@ -114,7 +114,7 @@ Pierwszeństwo: `AGENTS.md` (proces pracy) → ten dokument (standardy) → spec
 | 7.4 | Warunki wyścigu (np. dwie rezerwacje tego samego slotu) pokrywa test współbieżności; dokładnie jedna rezerwacja kończy się sukcesem. | PR (spec 4/5) |
 | 7.5 | Adaptery zewnętrzne (Stripe, LiveKit) mają testy kontraktowe z nagranymi odpowiedziami i weryfikacją podpisów webhooków. | PR (spec 5/6) |
 | 7.6 | Testy nie mogą wywoływać deprecacji ani ostrzeżeń (`failOnDeprecation/Notice/Warning` w `phpunit.dist.xml`). | CI |
-| 7.7 | Progi pokrycia (cel, po pojawieniu się kodu domenowego): domena ≥ 90%, aplikacja ≥ 80%, ogółem ≥ 75%; mutation testing (Infection) dla `Domain` nocą, MSI ≥ 70%. | plan |
+| 7.7 | **Pokrycie testami jednostkowymi `src/` = 100%** (linie i metody) dla całego kodu, w tym każdej nowej funkcji; bez wyjątków i bez `@codeCoverageIgnore`. Próg egzekwuje `composer test:coverage` (`bin/check-coverage`). Dodatkowo (plan): mutation testing (Infection) dla `Domain` nocą, MSI ≥ 70%. | CI |
 | 7.8 | Testy a11y (axe) w E2E dla ekranów publicznych i przepływu rezerwacji. | plan |
 
 ## 8. Frontend, UX, dostępność i i18n
@@ -177,13 +177,14 @@ Pierwszeństwo: `AGENTS.md` (proces pracy) → ten dokument (standardy) → spec
 | Styl kodu | `composer cs` (naprawa: `composer cs-fix`) | 3.1, 3.2, 3.4 |
 | Analiza statyczna | `composer stan` | 3.3, 3.12 |
 | Granice modułów | `composer deptrac` | 2.1–2.3 |
-| Testy | `composer test` | 7.1–7.6 |
-| Pełny zestaw lokalnie | `composer qa` | wszystkie powyższe |
-| W CI dodatkowo (`.github/workflows/ci.yml`, nieuruchomione w sandboxie) | `composer audit`, `lint:yaml/twig/container`, migracje na czystej bazie + `schema:validate` | 4.1, 4.3, 5.1, 6.8 |
+| Testy jednostkowe + pokrycie 100% | `composer test:unit`, `composer test:coverage` | 7.1–7.3, 7.6, 7.7 |
+| Testy integracyjne (PostgreSQL z testcontainers) i smoke przez agent-browser | `composer test:integration`, `composer e2e` | 7.2, 7.6 |
+| Szybki zestaw lokalnie (bez bazy) | `composer qa` | walidacja, styl, analiza, granice, testy jednostkowe |
+| W CI dodatkowo (`.github/workflows/ci.yml`, nieuruchomione w sandboxie; [spec](implemented/2026-10-26-ci-pull-request-pipeline.md)) | `build` (prod + `docker build`), `composer audit`, `lint:yaml/twig/container`, migracje na czystej bazie + `schema:validate` (testy integracyjne) | 4.1, 4.3, 5.1, 6.8 |
 
 ## Reguły do zautomatyzowania (dług standardów)
 
-Dodać w odpowiednich specyfikacjach: zakaz `new \DateTime`/`time()` (3.6, reguła PHPStan), `lint:translations` (8.4), skan sekretów (6.1), progi pokrycia i Infection (7.7), axe w E2E (7.8), budżety wydajności (8.5), CSP/nagłówki bezpieczeństwa (6.3).
+Dodać w odpowiednich specyfikacjach: zakaz `new \DateTime`/`time()` (3.6, reguła PHPStan), `lint:translations` (8.4), skan sekretów (6.1), Infection (7.7), axe w E2E (7.8), budżety wydajności (8.5), CSP/nagłówki bezpieczeństwa (6.3).
 
 ## Zmiana tego dokumentu
 

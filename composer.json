@@ -81,12 +81,19 @@
         "stan": "phpstan analyse --memory-limit=1G",
         "deptrac": "deptrac analyse --no-progress",
         "test": "phpunit",
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration",
+        "test:coverage": [
+            "phpunit --testsuite unit --coverage-clover var/coverage/clover.xml",
+            "@php bin/check-coverage var/coverage/clover.xml"
+        ],
+        "e2e": "tests/e2e/smoke.sh",
         "qa": [
             "@composer validate --strict",
             "@cs",
             "@stan",
             "@deptrac",
-            "@test"
+            "@test:unit"
         ],
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
@@ -122,6 +129,7 @@
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.0",
         "symfony/stopwatch": "7.4.*",
-        "symfony/web-profiler-bundle": "7.4.*"
+        "symfony/web-profiler-bundle": "7.4.*",
+        "testcontainers/testcontainers": "^1.2"
     }
 }
