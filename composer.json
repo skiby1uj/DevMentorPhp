@@ -1,4 +1,6 @@
 {
+    "name": "devmentor/app",
+    "description": "DevMentor – mentoring marketplace (Symfony, PostgreSQL)",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -74,6 +76,25 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+        "cs": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
+        "cs-fix": "php-cs-fixer fix --allow-risky=yes",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "deptrac": "deptrac analyse --no-progress",
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration",
+        "test:coverage": [
+            "phpunit --testsuite unit --coverage-clover var/coverage/clover.xml",
+            "@php bin/check-coverage var/coverage/clover.xml"
+        ],
+        "e2e": "tests/e2e/smoke.sh",
+        "qa": [
+            "@composer validate --strict",
+            "@cs",
+            "@stan",
+            "@deptrac",
+            "@test:unit"
+        ],
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
@@ -96,12 +117,19 @@
         }
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.3",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.1",
+        "phpstan/phpstan-symfony": "^2.1",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.0",
         "symfony/stopwatch": "7.4.*",
-        "symfony/web-profiler-bundle": "7.4.*"
+        "symfony/web-profiler-bundle": "7.4.*",
+        "testcontainers/testcontainers": "^1.2"
     }
 }

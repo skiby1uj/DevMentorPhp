@@ -1,0 +1,153 @@
+# Pull-request gates: build, lint, unit tests (100% coverage), integration tests (PostgreSQL via testcontainers)
+# and a smoke test of a throwaway app instance driven by agent-browser.
+# Spec: .ai/specs/implemented/2026-10-26-ci-pull-request-pipeline.md
+# NOTE: not executed in the authoring sandbox (no GitHub Actions, no Docker); validate on first push.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: '8.4'
+  PHP_EXTENSIONS: intl, pdo_pgsql, mbstring, zip, pcntl
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          tools: composer:v2
+          coverage: none
+      - name: Install production dependencies
+        run: composer install --no-dev --no-scripts --no-interaction --prefer-dist --no-progress --classmap-authoritative
+      - name: Warm up the production container and compile assets
+        env:
+          APP_ENV: prod
+          APP_DEBUG: '0'
+          APP_SECRET: build-check-secret
+          DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+        run: |
+          php bin/console importmap:install
+          php bin/console cache:warmup
+          php bin/console asset-map:compile
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP_SECRET: lint-secret
+      DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          tools: composer:v2
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Security audit
+        run: composer audit
+      - name: Validate composer.json
+        run: composer validate --strict
+      - name: Code style (PHP-CS-Fixer)
+        run: composer cs
+      - name: Static analysis (PHPStan)
+        run: |
+          APP_ENV=dev bin/console cache:warmup
+          composer stan
+      - name: Architecture boundaries (Deptrac)
+        run: composer deptrac
+      - name: Config and template linters
+        run: |
+          bin/console lint:yaml config --parse-tags
+          bin/console lint:twig templates
+          bin/console lint:container
+
+  unit:
+    name: Unit tests (100% coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          tools: composer:v2
+          coverage: pcov
+          ini-values: pcov.directory=src
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Unit tests with a 100% coverage gate
+        run: composer test:coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: var/coverage/clover.xml
+          if-no-files-found: ignore
+
+  integration:
+    name: Integration tests (PostgreSQL via testcontainers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      # Testcontainers starts postgres:18-alpine on the runner's Docker daemon and applies migrations on a clean database.
+      - name: Integration tests
+        run: composer test:integration
+      - name: Install agent-browser
+        timeout-minutes: 10
+        run: |
+          npm install --global agent-browser@0.39.4
+          agent-browser install --with-deps
+      - name: Smoke test of a throwaway app instance (agent-browser)
+        timeout-minutes: 10
+        run: composer e2e
+      - name: Upload smoke-test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke
+          path: |
+            var/e2e
+            var/log/ephemeral-app.log
+          if-no-files-found: ignore

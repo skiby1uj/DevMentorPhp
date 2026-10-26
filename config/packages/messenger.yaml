@@ -12,10 +12,15 @@ framework:
             failed: 'doctrine://default?queue_name=failed'
             # sync: 'sync://'
 
-        default_bus: messenger.bus.default
+        default_bus: command.bus
 
         buses:
-            messenger.bus.default: []
+            # Commands: one transaction per handler (flush happens in the middleware, never in domain/controllers).
+            command.bus:
+                middleware:
+                    - doctrine_transaction
+            # Queries: read-only, no side effects.
+            query.bus: ~
 
         routing:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
