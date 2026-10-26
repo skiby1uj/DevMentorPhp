@@ -33,7 +33,7 @@ TestDatabase::console('prod', ['asset-map:compile']);
 register_shutdown_function(TestDatabase::stop(...));
 
 $server = new Process(
-    [\PHP_BINARY, '-S', '127.0.0.1:'.$port, '-t', 'public'],
+    [\PHP_BINARY, '-d', 'variables_order=EGPCS', '-S', '127.0.0.1:'.$port, '-t', 'public'],
     $root,
     ['DATABASE_URL' => TestDatabase::url(), 'APP_ENV' => 'prod', 'APP_DEBUG' => '0', 'APP_SECRET' => 'ephemeral-secret'],
     null,
