@@ -1,0 +1,63 @@
+# Quality gates from .ai/specs/2026-10-25-devmentor-tech-stack-and-engineering-standards.md §12.2
+# NOTE: not executed in the authoring sandbox (no GitHub Actions); validate on first push.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app -d app"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, pdo_pgsql, mbstring, zip
+          tools: composer:v2
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Security audit
+        run: composer audit
+      - name: Validate composer.json
+        run: composer validate --strict
+      - name: Code style
+        run: composer cs
+      - name: Static analysis
+        run: |
+          APP_ENV=dev bin/console cache:warmup
+          composer stan
+      - name: Architecture boundaries
+        run: composer deptrac
+      - name: Linters
+        run: |
+          bin/console lint:yaml config --parse-tags
+          bin/console lint:twig templates
+          bin/console lint:container
+      - name: Migrations on a clean database
+        run: |
+          bin/console doctrine:database:create --if-not-exists
+          bin/console doctrine:migrations:migrate --no-interaction
+          bin/console doctrine:schema:validate
+      - name: Tests
+        run: composer test

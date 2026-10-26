@@ -1,0 +1,448 @@
+# Granice architektury (spec: 2026-10-25-devmentor-tech-stack-and-engineering-standards §3.2).
+# Reguły:
+#  - Domain zależy tylko od Shared i PHP.
+#  - Application zależy od Domain (własnego modułu) i Shared.
+#  - Infrastructure i UI zależą od Application/Domain własnego modułu i Shared.
+#  - Moduły nie zależą od siebie nawzajem: komunikacja przez zdarzenia lub publiczne interfejsy w Shared.
+deptrac:
+  paths:
+    - ./src
+  layers:
+    - name: IdentityDomain
+      collectors:
+        - type: directory
+          value: src/Identity/Domain/.*
+    - name: IdentityApplication
+      collectors:
+        - type: directory
+          value: src/Identity/Application/.*
+    - name: IdentityInfrastructure
+      collectors:
+        - type: directory
+          value: src/Identity/Infrastructure/.*
+    - name: IdentityUI
+      collectors:
+        - type: directory
+          value: src/Identity/UI/.*
+    - name: MentoringDomain
+      collectors:
+        - type: directory
+          value: src/Mentoring/Domain/.*
+    - name: MentoringApplication
+      collectors:
+        - type: directory
+          value: src/Mentoring/Application/.*
+    - name: MentoringInfrastructure
+      collectors:
+        - type: directory
+          value: src/Mentoring/Infrastructure/.*
+    - name: MentoringUI
+      collectors:
+        - type: directory
+          value: src/Mentoring/UI/.*
+    - name: CatalogDomain
+      collectors:
+        - type: directory
+          value: src/Catalog/Domain/.*
+    - name: CatalogApplication
+      collectors:
+        - type: directory
+          value: src/Catalog/Application/.*
+    - name: CatalogInfrastructure
+      collectors:
+        - type: directory
+          value: src/Catalog/Infrastructure/.*
+    - name: CatalogUI
+      collectors:
+        - type: directory
+          value: src/Catalog/UI/.*
+    - name: SchedulingDomain
+      collectors:
+        - type: directory
+          value: src/Scheduling/Domain/.*
+    - name: SchedulingApplication
+      collectors:
+        - type: directory
+          value: src/Scheduling/Application/.*
+    - name: SchedulingInfrastructure
+      collectors:
+        - type: directory
+          value: src/Scheduling/Infrastructure/.*
+    - name: SchedulingUI
+      collectors:
+        - type: directory
+          value: src/Scheduling/UI/.*
+    - name: BookingDomain
+      collectors:
+        - type: directory
+          value: src/Booking/Domain/.*
+    - name: BookingApplication
+      collectors:
+        - type: directory
+          value: src/Booking/Application/.*
+    - name: BookingInfrastructure
+      collectors:
+        - type: directory
+          value: src/Booking/Infrastructure/.*
+    - name: BookingUI
+      collectors:
+        - type: directory
+          value: src/Booking/UI/.*
+    - name: PaymentsDomain
+      collectors:
+        - type: directory
+          value: src/Payments/Domain/.*
+    - name: PaymentsApplication
+      collectors:
+        - type: directory
+          value: src/Payments/Application/.*
+    - name: PaymentsInfrastructure
+      collectors:
+        - type: directory
+          value: src/Payments/Infrastructure/.*
+    - name: PaymentsUI
+      collectors:
+        - type: directory
+          value: src/Payments/UI/.*
+    - name: SessionsDomain
+      collectors:
+        - type: directory
+          value: src/Sessions/Domain/.*
+    - name: SessionsApplication
+      collectors:
+        - type: directory
+          value: src/Sessions/Application/.*
+    - name: SessionsInfrastructure
+      collectors:
+        - type: directory
+          value: src/Sessions/Infrastructure/.*
+    - name: SessionsUI
+      collectors:
+        - type: directory
+          value: src/Sessions/UI/.*
+    - name: MessagingDomain
+      collectors:
+        - type: directory
+          value: src/Messaging/Domain/.*
+    - name: MessagingApplication
+      collectors:
+        - type: directory
+          value: src/Messaging/Application/.*
+    - name: MessagingInfrastructure
+      collectors:
+        - type: directory
+          value: src/Messaging/Infrastructure/.*
+    - name: MessagingUI
+      collectors:
+        - type: directory
+          value: src/Messaging/UI/.*
+    - name: ReviewsDomain
+      collectors:
+        - type: directory
+          value: src/Reviews/Domain/.*
+    - name: ReviewsApplication
+      collectors:
+        - type: directory
+          value: src/Reviews/Application/.*
+    - name: ReviewsInfrastructure
+      collectors:
+        - type: directory
+          value: src/Reviews/Infrastructure/.*
+    - name: ReviewsUI
+      collectors:
+        - type: directory
+          value: src/Reviews/UI/.*
+    - name: NotificationsDomain
+      collectors:
+        - type: directory
+          value: src/Notifications/Domain/.*
+    - name: NotificationsApplication
+      collectors:
+        - type: directory
+          value: src/Notifications/Application/.*
+    - name: NotificationsInfrastructure
+      collectors:
+        - type: directory
+          value: src/Notifications/Infrastructure/.*
+    - name: NotificationsUI
+      collectors:
+        - type: directory
+          value: src/Notifications/UI/.*
+    - name: ModerationDomain
+      collectors:
+        - type: directory
+          value: src/Moderation/Domain/.*
+    - name: ModerationApplication
+      collectors:
+        - type: directory
+          value: src/Moderation/Application/.*
+    - name: ModerationInfrastructure
+      collectors:
+        - type: directory
+          value: src/Moderation/Infrastructure/.*
+    - name: ModerationUI
+      collectors:
+        - type: directory
+          value: src/Moderation/UI/.*
+    - name: PlatformDomain
+      collectors:
+        - type: directory
+          value: src/Platform/Domain/.*
+    - name: PlatformApplication
+      collectors:
+        - type: directory
+          value: src/Platform/Application/.*
+    - name: PlatformInfrastructure
+      collectors:
+        - type: directory
+          value: src/Platform/Infrastructure/.*
+    - name: PlatformUI
+      collectors:
+        - type: directory
+          value: src/Platform/UI/.*
+    - name: SharedDomain
+      collectors:
+        - type: directory
+          value: src/Shared/Domain/.*
+    - name: SharedApplication
+      collectors:
+        - type: directory
+          value: src/Shared/Application/.*
+    - name: SharedInfrastructure
+      collectors:
+        - type: directory
+          value: src/Shared/Infrastructure/.*
+    - name: SharedUI
+      collectors:
+        - type: directory
+          value: src/Shared/UI/.*
+    - name: Kernel
+      collectors:
+        - type: classLike
+          value: ^App\\Kernel$
+  ruleset:
+    IdentityDomain:
+      - SharedDomain
+    IdentityApplication:
+      - IdentityDomain
+      - SharedDomain
+      - SharedApplication
+    IdentityInfrastructure:
+      - IdentityDomain
+      - IdentityApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    IdentityUI:
+      - IdentityDomain
+      - IdentityApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    MentoringDomain:
+      - SharedDomain
+    MentoringApplication:
+      - MentoringDomain
+      - SharedDomain
+      - SharedApplication
+    MentoringInfrastructure:
+      - MentoringDomain
+      - MentoringApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    MentoringUI:
+      - MentoringDomain
+      - MentoringApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    CatalogDomain:
+      - SharedDomain
+    CatalogApplication:
+      - CatalogDomain
+      - SharedDomain
+      - SharedApplication
+    CatalogInfrastructure:
+      - CatalogDomain
+      - CatalogApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    CatalogUI:
+      - CatalogDomain
+      - CatalogApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    SchedulingDomain:
+      - SharedDomain
+    SchedulingApplication:
+      - SchedulingDomain
+      - SharedDomain
+      - SharedApplication
+    SchedulingInfrastructure:
+      - SchedulingDomain
+      - SchedulingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    SchedulingUI:
+      - SchedulingDomain
+      - SchedulingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    BookingDomain:
+      - SharedDomain
+    BookingApplication:
+      - BookingDomain
+      - SharedDomain
+      - SharedApplication
+    BookingInfrastructure:
+      - BookingDomain
+      - BookingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    BookingUI:
+      - BookingDomain
+      - BookingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    PaymentsDomain:
+      - SharedDomain
+    PaymentsApplication:
+      - PaymentsDomain
+      - SharedDomain
+      - SharedApplication
+    PaymentsInfrastructure:
+      - PaymentsDomain
+      - PaymentsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    PaymentsUI:
+      - PaymentsDomain
+      - PaymentsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    SessionsDomain:
+      - SharedDomain
+    SessionsApplication:
+      - SessionsDomain
+      - SharedDomain
+      - SharedApplication
+    SessionsInfrastructure:
+      - SessionsDomain
+      - SessionsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    SessionsUI:
+      - SessionsDomain
+      - SessionsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    MessagingDomain:
+      - SharedDomain
+    MessagingApplication:
+      - MessagingDomain
+      - SharedDomain
+      - SharedApplication
+    MessagingInfrastructure:
+      - MessagingDomain
+      - MessagingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    MessagingUI:
+      - MessagingDomain
+      - MessagingApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    ReviewsDomain:
+      - SharedDomain
+    ReviewsApplication:
+      - ReviewsDomain
+      - SharedDomain
+      - SharedApplication
+    ReviewsInfrastructure:
+      - ReviewsDomain
+      - ReviewsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    ReviewsUI:
+      - ReviewsDomain
+      - ReviewsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    NotificationsDomain:
+      - SharedDomain
+    NotificationsApplication:
+      - NotificationsDomain
+      - SharedDomain
+      - SharedApplication
+    NotificationsInfrastructure:
+      - NotificationsDomain
+      - NotificationsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    NotificationsUI:
+      - NotificationsDomain
+      - NotificationsApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    ModerationDomain:
+      - SharedDomain
+    ModerationApplication:
+      - ModerationDomain
+      - SharedDomain
+      - SharedApplication
+    ModerationInfrastructure:
+      - ModerationDomain
+      - ModerationApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    ModerationUI:
+      - ModerationDomain
+      - ModerationApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    PlatformDomain:
+      - SharedDomain
+    PlatformApplication:
+      - PlatformDomain
+      - SharedDomain
+      - SharedApplication
+    PlatformInfrastructure:
+      - PlatformDomain
+      - PlatformApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedInfrastructure
+    PlatformUI:
+      - PlatformDomain
+      - PlatformApplication
+      - SharedDomain
+      - SharedApplication
+      - SharedUI
+    SharedDomain:
+    SharedApplication:
+      - SharedDomain
+    SharedInfrastructure:
+      - SharedDomain
+      - SharedApplication
+    SharedUI:
+      - SharedDomain
+      - SharedApplication

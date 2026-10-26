@@ -10,3 +10,4 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`; tutaj trzymam
 
 ## Wpisy
 <!-- najnowsze na górze -->
+- [2026-10-25] **PgBouncer** – ograniczenie dotyczy stanu sesji, nie prepared statements (od 1.21) → [plik](lessons/2026-10-25-pgbouncer-prepared-statements.md)

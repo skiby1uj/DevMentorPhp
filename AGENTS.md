@@ -38,3 +38,35 @@ Uzupełnia zasady powyżej (nie zastępuje ich); źródło: wskazówki Borisa Ch
 12. **Wnioski po każdej poprawce:** po korekcie od użytkownika lub naprawie błędu zapisz regułę zapobiegającą powtórce zgodnie z zasadą 5; jeśli dotyczy ona stale całego repozytorium, dopisz ją też krótko do tego pliku.
 13. **Subagenci i równoległość:** do rozległych poszukiwań, niezależnych podzadań lub dodatkowej mocy obliczeniowej deleguj do subagentów, aby nie zaśmiecać głównego kontekstu. Równoległe, niezależne zadania prowadź w osobnych git worktree (nie w jednym drzewie roboczym); każdy równoległy przebieg ma własny log w `.ai/runs/`.
 14. **Powtarzalna praca → skill:** czynność wykonywaną wielokrotnie zamień na skill (`.claude/skills/`, `.agents/skills/`) i zaproponuj to użytkownikowi, zamiast powtarzać ją ręcznie.
+
+## Założenia techniczne – DevMentor
+
+Aplikacja **DevMentor** (platforma mentoringowa; koncepcja produktu: `mentorhub-koncept/docs/`). Poniższe założenia są wiążące; odstępstwo wymaga zapisu w specyfikacji (`.ai/specs/`) i zgody użytkownika.
+
+**Stack**
+- Nadrzędna specyfikacja stacku i standardów: `.ai/specs/2026-10-25-devmentor-tech-stack-and-engineering-standards.md` (docelowo PHP 8.5, Symfony 7.4 LTS, PostgreSQL 18). Przy konflikcie z tym plikiem obowiązuje specyfikacja; zmiana stacku wymaga nowego ADR i zgody użytkownika.
+- PHP: `declare(strict_types=1)` w nowych plikach. `composer.json` wymaga nadal `>=8.2` (podniesienie do `>=8.4` czeka na środowisko z PHP ≥ 8.4) – nie używaj składni nowszej niż wspiera wersja z `composer.json`.
+- Symfony **7.4** (wszystkie pakiety `symfony/*` na `7.4.*`; nie mieszaj wersji minor). Konfiguracja przez atrybuty PHP i autowiring; żadnej konfiguracji w XML/annotations.
+- Baza: **PostgreSQL 18** (`server_version: '18'`, obraz w `compose.yaml` i CI; lokalny sandbox ma serwer 17 – różnica jest tolerowana). Trzymaj wersje spójne. Dostęp wyłącznie przez **Doctrine ORM 3 / DBAL** i **Doctrine Migrations**; encje jako atrybuty w `src/<Moduł>/Domain`, implementacje repozytoriów w `src/<Moduł>/Infrastructure` (nie ma już `src/Entity`/`src/Repository`; mapowania per moduł w `config/packages/doctrine.yaml`).
+- Front: Twig + AssetMapper + Stimulus/Turbo (bez bundlera Node, chyba że uzgodnione).
+
+**Baza danych i migracje**
+- Każda zmiana schematu = migracja: `bin/console make:migration` → przejrzyj SQL → `bin/console doctrine:migrations:migrate`. Nigdy `doctrine:schema:update --force` ani ręczne zmiany schematu.
+- Migracje są niezmienne po scaleniu do głównej gałęzi; poprawki robisz nową migracją. Pisz `down()` tam, gdzie to możliwe.
+- Korzystaj z typów PostgreSQL świadomie (`jsonb`, `timestamptz`, `uuid`); czasy zapisuj w UTC (`DateTimeImmutable`), strefę stosuj dopiero w prezentacji.
+- Operacje wielokrokowe (rezerwacja + płatność) w jednej transakcji; unikaj N+1 (fetch join / `EXTRA_LAZY` świadomie); dodawaj indeksy do kolumn filtrowania i kluczy obcych.
+- Sekrety i `DATABASE_URL` tylko w `.env.local`/zmiennych środowiskowych – nie commituj prawdziwych haseł.
+
+**Pula połączeń:** Doctrine DBAL **nie ma własnej puli połączeń** – PHP-FPM tworzy połączenie na żądanie. Pulowanie realizujemy poza aplikacją: **PgBouncer** (tryb `transaction`) przed PostgreSQL. Konsekwencje dla kodu: nie używaj stanu sesji PostgreSQL (`SET`, sesyjne advisory locks – używaj `pg_advisory_xact_lock`, `LISTEN/NOTIFY`); nazwane prepared statements są dozwolone (PgBouncer ≥ 1.21, `max_prepared_statements` > 0); połączenie do migracji kieruj bezpośrednio do bazy, nie przez PgBouncer.
+
+**Architektura kodu**
+- Modularny monolit: `src/<Moduł>/{Domain,Application,Infrastructure,UI}` (moduły: Identity, Mentoring, Catalog, Scheduling, Booking, Payments, Sessions, Messaging, Reviews, Notifications, Moderation, Platform, Shared). Granice egzekwuje **Deptrac** (`deptrac.yaml`): Domain → tylko Shared; moduły nie zależą od siebie (komunikacja przez zdarzenia/publiczne interfejsy w Shared).
+- Kontrolery cienkie, w `UI`; logika w `Domain`/`Application`. Komendy przez `command.bus` (transakcja w middleware `doctrine_transaction`; **nie wołaj `flush()` ręcznie**), zapytania przez `query.bus`.
+- Wstrzykiwanie przez konstruktor; klasy `final`, wartości `final readonly`; czas wyłącznie przez `ClockInterface`; pieniądze jako `App\Shared\Domain\Money` (grosze). Walidacja: Validator/Form, autoryzacja: Voters.
+- Zadania asynchroniczne (e-maile, przypomnienia, wypłaty) przez Symfony Messenger z transportem Doctrine.
+
+**Jakość i weryfikacja**
+- Bramka jakości: **`composer qa`** (validate, PHP-CS-Fixer `@PER-CS3x0`+`@Symfony`, PHPStan level max, Deptrac, PHPUnit) musi być zielone przed „gotowe”; `composer cs-fix` naprawia styl. Nie dodawaj `@phpstan-ignore` ani baseline.
+- Testy: PHPUnit (`bin/phpunit`); nowe zachowanie ma test, błąd ma test regresyjny. Testy integracyjne działają na osobnej bazie `_test` (konfiguracja `when@test`).
+- Po zmianie mapowania/migracji uruchom `bin/console doctrine:schema:validate` i potwierdź, że migracja wykonuje się na czystej bazie.
+- Język: kod, nazwy klas i komentarze po angielsku; teksty interfejsu przez translator (`translations/`), domyślnie PL.
