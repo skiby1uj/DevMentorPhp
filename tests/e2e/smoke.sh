@@ -34,7 +34,8 @@ for _ in $(seq 1 180); do
     sleep 1
 done
 if [ "${ready:-0}" != "1" ]; then
-    echo "Ephemeral app did not become ready in time:" >&2
+    echo "Ephemeral app did not become ready in time; last response and app log:" >&2
+    curl -si "${BASE_URL}/health/ready" >&2 || true
     cat "${LOG_FILE}" >&2
     exit 1
 fi

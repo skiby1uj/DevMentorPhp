@@ -28,6 +28,7 @@ if (\function_exists('pcntl_async_signals')) {
 }
 
 TestDatabase::migrate('prod');
+TestDatabase::console('prod', ['importmap:install']);
 TestDatabase::console('prod', ['asset-map:compile']);
 register_shutdown_function(TestDatabase::stop(...));
 
@@ -38,7 +39,9 @@ $server = new Process(
     null,
     null,
 );
-$server->start();
+$server->start(static function (string $type, string $output): void {
+    fwrite(Process::ERR === $type ? \STDERR : \STDOUT, $output);
+});
 register_shutdown_function(static fn () => $server->stop(5));
 
 echo sprintf("Ephemeral app listening on http://127.0.0.1:%d\n", $port);
@@ -47,5 +50,4 @@ while ($server->isRunning()) {
     usleep(200_000);
 }
 
-fwrite(\STDERR, $server->getErrorOutput());
 exit(1);

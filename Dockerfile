@@ -11,6 +11,7 @@ COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --classmap-authoritative
 COPY . .
 RUN composer dump-autoload --no-dev --classmap-authoritative \
+ && php bin/console importmap:install \
  && php bin/console asset-map:compile \
  && php bin/console cache:warmup
 
