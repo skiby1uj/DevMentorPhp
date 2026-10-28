@@ -10,5 +10,6 @@ Szczegółowe wpisy trafiają do `.ai/lessons/YYYY-MM-DD-slug.md`; tutaj trzymam
 
 ## Wpisy
 <!-- najnowsze na górze -->
+- [2026-10-28] **composer audit w CI** – nowa porada dla pakietu psuje Lint na każdym PR; zaktualizuj pakiet w obrębie `7.4.*` zamiast ignorować → [plik](lessons/2026-10-28-composer-audit-advisory-fails-lint.md)
 - [2026-10-26] **Recepty Flex dla pakietów dev** – po `composer require --dev` usuń pliki `config/` z recept odwołujące się do pakietów dev; trzymaj się składni PHP z `composer.json` → [plik](lessons/2026-10-26-flex-recipes-for-dev-packages.md)
 - [2026-10-25] **PgBouncer** – ograniczenie dotyczy stanu sesji, nie prepared statements (od 1.21) → [plik](lessons/2026-10-25-pgbouncer-prepared-statements.md)
